@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Mic, Play, Upload, Pause, Square, SkipBack, SkipForward } from "lucide-react"
+import { Mic, Play, Upload, Pause, Square, SkipBack, SkipForward, LogOut, User } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { AuthProvider, useAuth } from "@/components/auth-context"
 
-export default function VoiceRecorderLanding() {
+function VoiceRecorderApp() {
+  const { isAuthenticated, user, login, logout } = useAuth()
   const [isRecording, setIsRecording] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
@@ -67,6 +69,11 @@ export default function VoiceRecorderLanding() {
   }, [])
 
   const startRecording = async () => {
+    if (!isAuthenticated) {
+      alert("Please sign in to start recording")
+      return
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const mediaRecorder = new MediaRecorder(stream)
@@ -211,7 +218,7 @@ export default function VoiceRecorderLanding() {
         setCurrentTime(0)
         setDuration(0)
         audioRef.current.src = recording.url
-        audioRef.current.load() // Force reload to get proper duration
+        audioRef.current.load()
         audioRef.current.play()
         setIsPlaying(true)
         setCurrentPlayingId(recording.id)
@@ -252,12 +259,50 @@ export default function VoiceRecorderLanding() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
   }
 
-  const handleUploadToDrive = (recording?: any) => {
+  const handleUploadToDrive = async (recording?: any) => {
     const blob = recording ? recording.blob : audioBlob
-    const name = recording ? recording.name : `recording-${new Date().toISOString().slice(0, 19)}`
+    const name = recording ? recording.name : fileName.trim()
 
-    console.log("Uploading to Google Drive...", { blob, name })
-    alert(`"${name}" will be uploaded to Google Drive (backend implementation needed)`)
+    if (!blob) {
+      alert("❌ No recording to upload.")
+      return
+    }
+
+    if (!name) {
+      alert("❌ Please provide a name for your recording before uploading.")
+      return
+    }
+
+    try {
+      const token = sessionStorage.getItem("google_access_token")
+      if (!token) {
+        alert("❌ Please sign in with Google first.")
+        return
+      }
+
+      // Ensure extension
+      const safeName = name.endsWith(".webm") ? name : `${name}.webm`
+
+      const formData = new FormData()
+      formData.append("file", blob, safeName)
+      formData.append("token", token)
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      const result = await res.json()
+
+      if (res.ok) {
+        alert(`✅ Uploaded successfully! File ID: ${result.file.id}`)
+      } else {
+        alert(`❌ Upload failed: ${result.error || "Unknown error"}`)
+      }
+    } catch (err) {
+      console.error("Upload error:", err)
+      alert("❌ Upload failed due to network/server error.")
+    }
   }
 
   const handleDownload = (recording?: any) => {
@@ -276,19 +321,48 @@ export default function VoiceRecorderLanding() {
     URL.revokeObjectURL(url)
   }
 
-  const clearRecording = () => {
-    setAudioBlob(null)
-    setAudioUrl(null)
-    setIsPlaying(false)
-    setRecordingTime(0)
-    if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current.currentTime = 0
-    }
-  }
-
   const deleteTempRecording = (id: string) => {
     setTempRecordings((prev) => prev.filter((rec) => rec.id !== id))
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
+        {/* Header */}
+        <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Mic className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <h1 className="text-xl font-bold text-foreground">VoiceCapture Pro</h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <ThemeToggle />
+              <Button onClick={login} className="bg-blue-600 hover:bg-blue-700 text-white">
+                Sign in with Google
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {/* Login Section */}
+        <section className="py-20 px-4">
+          <div className="container mx-auto text-center">
+            <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
+              Professional Voice Recording
+              <span className="text-primary block">Made Simple</span>
+            </h2>
+            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto text-pretty">
+              Record high-quality audio with seamless Google Drive integration. Sign in to get started.
+            </p>
+            <Button onClick={login} size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg">
+              Sign in with Google to Start Recording
+            </Button>
+          </div>
+        </section>
+      </div>
+    )
   }
 
   return (
@@ -300,46 +374,28 @@ export default function VoiceRecorderLanding() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <Mic className="w-5 h-5 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-bold text-foreground">VoiceCapture </h1>
+            <h1 className="text-xl font-bold text-foreground">VoiceCapture Pro</h1>
           </div>
-          <nav className="hidden md:flex items-center space-x-6">
-            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
-              Features
-            </a>
-            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
-              Pricing
-            </a>
-            <a href="#support" className="text-muted-foreground hover:text-foreground transition-colors">
-              Support
-            </a>
-            <Button variant="outline" size="sm">
-              Download
-            </Button>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <User className="w-4 h-4" />
+              <span>{user?.name || user?.email}</span>
+            </div>
             <ThemeToggle />
-          </nav>
+            <Button onClick={logout} variant="outline" size="sm">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
-
-      {/* Hero Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto text-center">
-          <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
-            Professional Voice Recording
-            <span className="text-primary block">Made Simple</span>
-          </h2>
-          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto text-pretty">
-            Record high-quality audio with seamless Google Drive integration. Perfect for professionals, students, and
-            content creators.
-          </p>
-        </div>
-      </section>
 
       {/* Recording Interface */}
       <section className="py-12 px-4">
         <div className="container mx-auto max-w-4xl">
           <Card className="p-8 bg-card/50 backdrop-blur-sm border-2 border-border/50">
             <div className="text-center space-y-8">
-              {/* Recording Button with Soothing Animation */}
+              {/* Recording Button with Animation */}
               <div className="flex justify-center">
                 <div className="relative">
                   {isRecording && (
@@ -561,46 +617,6 @@ export default function VoiceRecorderLanding() {
         </DialogContent>
       </Dialog>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 px-4 bg-muted/30">
-        <div className="container mx-auto">
-          <h3 className="text-3xl font-bold text-center text-foreground mb-12">
-            Powerful Features for Professional Recording
-          </h3>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Mic className="w-6 h-6 text-primary" />
-              </div>
-              <h4 className="text-xl font-semibold text-foreground mb-2">High-Quality Audio</h4>
-              <p className="text-muted-foreground text-pretty">
-                Crystal clear recording with advanced noise reduction and real-time audio level monitoring.
-              </p>
-            </Card>
-
-            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm">
-              <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Upload className="w-6 h-6 text-secondary" />
-              </div>
-              <h4 className="text-xl font-semibold text-foreground mb-2">Google Drive Integration</h4>
-              <p className="text-muted-foreground text-pretty">
-                Seamlessly upload and retrieve your recordings from Google Drive with one click.
-              </p>
-            </Card>
-
-            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm">
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Play className="w-6 h-6 text-accent" />
-              </div>
-              <h4 className="text-xl font-semibold text-foreground mb-2">Instant Playback</h4>
-              <p className="text-muted-foreground text-pretty">
-                Review your recordings immediately with built-in playback controls and waveform visualization.
-              </p>
-            </Card>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-border bg-background">
         <div className="container mx-auto text-center">
@@ -628,5 +644,13 @@ export default function VoiceRecorderLanding() {
       {/* Hidden audio element for playback */}
       {(audioUrl || tempRecordings.length > 0) && <audio ref={audioRef} className="hidden" />}
     </div>
+  )
+}
+
+export default function VoiceRecorderLanding() {
+  return (
+    <AuthProvider>
+      <VoiceRecorderApp />
+    </AuthProvider>
   )
 }
