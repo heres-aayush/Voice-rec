@@ -55,6 +55,9 @@ function VoiceRecorderApp() {
   const animationFrameRef = useRef<number>();
   const timerRef = useRef<NodeJS.Timeout>();
   const chunksRef = useRef<BlobPart[]>([]);
+  const [driveFiles, setDriveFiles] = useState<any[]>([]);
+  const [loadingDriveFiles, setLoadingDriveFiles] = useState(true);
+
 
   useEffect(() => {
     return () => {
@@ -89,6 +92,37 @@ function VoiceRecorderApp() {
       audio.removeEventListener("ended", handleEnded);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchDriveFiles = async () => {
+      const token = sessionStorage.getItem("google_access_token");
+      if (!token) {
+        setLoadingDriveFiles(false);
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/list", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          setDriveFiles(data.files);
+        } else {
+          console.error("Error fetching Drive files:", data);
+        }
+      } catch (err) {
+        console.error("Network error fetching Drive files:", err);
+      }
+      setLoadingDriveFiles(false);
+    };
+
+    fetchDriveFiles();
+  }, []);
+
 
   const startRecording = async () => {
     if (!isAuthenticated) {
@@ -195,28 +229,6 @@ function VoiceRecorderApp() {
     }
   };
 
-  // const saveRecording = () => {
-  //   if (!audioBlob || !fileName.trim()) return
-
-  //   const recordingId = Date.now().toString()
-  //   const newRecording = {
-  //     id: recordingId,
-  //     name: fileName.trim(),
-  //     blob: audioBlob,
-  //     url: audioUrl!,
-  //     duration: recordingTime,
-  //   }
-
-  //   setTempRecordings((prev) => [...prev, newRecording])
-  //   setShowSaveDialog(false)
-  //   setFileName("")
-
-  //   // Clear current recording from main state
-  //   setAudioBlob(null)
-  //   setAudioUrl(null)
-  //   setRecordingTime(0)
-  //   setIsPlaying(false)
-  // }
   const saveRecording = () => {
     if (!audioBlob) return;
 
@@ -312,52 +324,6 @@ function VoiceRecorderApp() {
       .toString()
       .padStart(2, "0")}`;
   };
-
-  // const handleUploadToDrive = async (recording?: any) => {
-  //   const blob = recording ? recording.blob : audioBlob;
-  //   const name = recording ? recording.name : fileName.trim();
-
-  //   if (!blob) {
-  //     alert("❌ No recording to upload.");
-  //     return;
-  //   }
-
-  //   if (!name) {
-  //     alert("❌ Please provide a name for your recording before uploading.");
-  //     return;
-  //   }
-
-  //   try {
-  //     const token = sessionStorage.getItem("google_access_token");
-  //     if (!token) {
-  //       alert("❌ Please sign in with Google first.");
-  //       return;
-  //     }
-
-  //     // Ensure extension
-  //     const safeName = name.endsWith(".webm") ? name : `${name}.webm`;
-
-  //     const formData = new FormData();
-  //     formData.append("file", blob, safeName);
-  //     formData.append("token", token);
-
-  //     const res = await fetch("/api/upload", {
-  //       method: "POST",
-  //       body: formData,
-  //     });
-
-  //     const result = await res.json();
-
-  //     if (res.ok) {
-  //       alert(`✅ Uploaded successfully! File ID: ${result.file.id}`);
-  //     } else {
-  //       alert(`❌ Upload failed: ${result.error || "Unknown error"}`);
-  //     }
-  //   } catch (err) {
-  //     console.error("Upload error:", err);
-  //     alert("❌ Upload failed due to network/server error.");
-  //   }
-  // };
 
   const handleUploadToDrive = async (recording?: any) => {
     const blob = recording ? recording.blob : audioBlob;
@@ -778,6 +744,51 @@ function VoiceRecorderApp() {
                   </div>
                 </div>
               )}
+              {/* Google Drive Recordings */}
+              <div className="space-y-4 mt-8">
+                <h3 className="text-lg font-semibold text-foreground">
+                  Previously Saved Recordings
+                </h3>
+                {loadingDriveFiles ? (
+                  <p className="text-sm text-muted-foreground">Loading...</p>
+                ) : driveFiles.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No recordings found in Drive.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {driveFiles.map((file) => (
+                      <div
+                        key={file.id}
+                        className="p-4 bg-muted/20 rounded-lg flex items-center justify-between"
+                      >
+                        <div>
+                          <div className="font-medium text-foreground">{file.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            Created: {new Date(file.createdTime).toLocaleString()}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <a
+                            href={`https://drive.google.com/uc?export=download&id=${file.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 text-sm border rounded hover:bg-muted"
+                          >
+                            Download
+                          </a>
+                          <a
+                            href={file.webViewLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 text-sm border rounded hover:bg-muted"
+                          >
+                            Open
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </Card>
         </div>
