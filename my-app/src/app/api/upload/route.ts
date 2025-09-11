@@ -17,10 +17,61 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const searchQuery = encodeURIComponent(
+      "name = 'voice-saptarshi' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
+    );
+
+    const searchRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=${searchQuery}&fields=files(id,name)`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    const searchData = await searchRes.json();
+
+    let folderId: string | null = null;
+    if (searchData.files && searchData.files.length > 0) {
+      // Folder exists
+      folderId = searchData.files[0].id;
+    } else {
+      // Folder not found → create it
+      const folderMetadata = {
+        name: "voice-saptarshi",
+        mimeType: "application/vnd.google-apps.folder",
+      };
+
+      const folderRes = await fetch(
+        "https://www.googleapis.com/drive/v3/files",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(folderMetadata),
+        }
+      );
+
+      const folderData = await folderRes.json();
+      if (!folderRes.ok) {
+        return NextResponse.json(
+          {
+            error:
+              folderData.error?.message || "Could not create or find folder",
+            details: folderData,
+          },
+          { status: folderRes.status }
+        );
+      }
+
+      folderId = folderData.id;
+    }
+
     // Use the filename from the uploaded file
     const metadata = {
-      name: file.name, 
+      name: file.name,
       mimeType: file.type || "audio/webm",
+      parents: folderId ? [folderId] : undefined,
     };
 
     // Build multipart request safely with FormData
