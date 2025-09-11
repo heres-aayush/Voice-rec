@@ -43,6 +43,8 @@ function VoiceRecorderApp() {
   const animationFrameRef = useRef<number>()
   const timerRef = useRef<NodeJS.Timeout>()
   const chunksRef = useRef<BlobPart[]>([])
+  const [driveFiles, setDriveFiles] = useState<any[]>([]);
+  const [loadingDriveFiles, setLoadingDriveFiles] = useState(true);
 
   useEffect(() => {
     return () => {
@@ -77,6 +79,36 @@ function VoiceRecorderApp() {
       audio.removeEventListener("ended", handleEnded)
     }
   }, [])
+
+    useEffect(() => {
+    const fetchDriveFiles = async () => {
+      const token = sessionStorage.getItem("google_access_token");
+      if (!token) {
+        setLoadingDriveFiles(false);
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/list", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          setDriveFiles(data.files);
+        } else {
+          console.error("Error fetching Drive files:", data);
+        }
+      } catch (err) {
+        console.error("Network error fetching Drive files:", err);
+      }
+      setLoadingDriveFiles(false);
+    };
+
+    fetchDriveFiles();
+  }, []);
 
   const startRecording = async () => {
     if (!isAuthenticated) {
@@ -200,12 +232,18 @@ function VoiceRecorderApp() {
   }
 
   const saveRecording = () => {
-    if (!audioBlob || !fileName.trim()) return
+    if (!audioBlob) return;
 
-    const recordingId = Date.now().toString()
+    // Build final name: user name (optional) + timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const baseName = fileName.trim()
+      ? `${fileName.trim()}-${timestamp}`
+      : `recording-${timestamp}`;
+
+    const recordingId = Date.now().toString();
     const newRecording = {
       id: recordingId,
-      name: fileName.trim(),
+      name: baseName,
       blob: audioBlob,
       url: audioUrl!,
       duration: recordingTime,
@@ -288,15 +326,10 @@ function VoiceRecorderApp() {
 
   const handleUploadToDrive = async (recording?: any) => {
     const blob = recording ? recording.blob : audioBlob
-    const name = recording ? recording.name : fileName.trim()
+    const nameInput = recording ? recording.name : fileName.trim()
 
     if (!blob) {
       alert("❌ No recording to upload.")
-      return
-    }
-
-    if (!name) {
-      alert("❌ Please provide a name for your recording before uploading.")
       return
     }
 
@@ -307,22 +340,26 @@ function VoiceRecorderApp() {
         return
       }
 
-      // Ensure extension
-      const safeName = name.endsWith(".webm") ? name : `${name}.webm`
+      // Generate final filename
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const safeName = nameInput
+        ? `${nameInput}-${timestamp}.webm`
+        : `recording-${timestamp}.webm`;
 
-      const formData = new FormData()
-      formData.append("file", blob, safeName)
-      formData.append("token", token)
+      const formData = new FormData();
+      formData.append("file", blob, safeName);
+      formData.append("token", token);
 
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
-      })
+      });
+
 
       const result = await res.json()
 
       if (res.ok) {
-        alert(`✅ Uploaded successfully! File ID: ${result.file.id}`)
+        alert(`✅ Uploaded successfully! File ID: ${result.file.id}`);
 
         // 🔥 Update recording with both the correct name and fileId
         if (recording) {
@@ -342,8 +379,6 @@ function VoiceRecorderApp() {
       alert("❌ Upload failed due to network/server error.")
     }
   };
-
-
 
   const handleDownload = (recording?: any) => {
     const blob = recording ? recording.blob : audioBlob
@@ -668,6 +703,51 @@ function VoiceRecorderApp() {
                   </div>
                 </div>
               )}
+              {/* Google Drive Recordings */}
+              <div className="space-y-4 mt-8">
+                <h3 className="text-lg font-semibold text-foreground">
+                  Previously Saved Recordings
+                </h3>
+                {loadingDriveFiles ? (
+                  <p className="text-sm text-muted-foreground">Loading...</p>
+                ) : driveFiles.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No recordings found in Drive.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {driveFiles.map((file) => (
+                      <div
+                        key={file.id}
+                        className="p-4 bg-muted/20 rounded-lg flex items-center justify-between"
+                      >
+                        <div>
+                          <div className="font-medium text-foreground">{file.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            Created: {new Date(file.createdTime).toLocaleString()}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <a
+                            href={`https://drive.google.com/uc?export=download&id=${file.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 text-sm border rounded hover:bg-muted"
+                          >
+                            Download
+                          </a>
+                          <a
+                            href={file.webViewLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 text-sm border rounded hover:bg-muted"
+                          >
+                            Open
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </Card>
         </div>
@@ -712,7 +792,7 @@ function VoiceRecorderApp() {
             <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={saveRecording} disabled={!fileName.trim()}>
+            <Button onClick={saveRecording}>
               Save
             </Button>
           </DialogFooter>
