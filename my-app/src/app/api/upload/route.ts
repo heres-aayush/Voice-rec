@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     }
 
     const searchQuery = encodeURIComponent(
-      "name = 'voice-saptarshi' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
+      "name = 'voice-recorder' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
     );
 
     const searchRes = await fetch(
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     } else {
       // Folder not found → create it
       const folderMetadata = {
-        name: "voice-saptarshi",
+        name: "voice-recorder",
         mimeType: "application/vnd.google-apps.folder",
       };
 
