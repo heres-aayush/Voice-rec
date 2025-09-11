@@ -43,6 +43,7 @@ function VoiceRecorderApp() {
       blob: Blob;
       url: string;
       duration: number;
+      fileId: string;
     }>
   >([]);
   const [currentTime, setCurrentTime] = useState(0);
@@ -245,6 +246,7 @@ function VoiceRecorderApp() {
       blob: audioBlob,
       url: audioUrl!,
       duration: recordingTime,
+      fileId: "", // Add fileId as required by the type
     };
 
     setTempRecordings((prev) => [...prev, newRecording]);
@@ -360,6 +362,17 @@ function VoiceRecorderApp() {
 
       if (res.ok) {
         alert(`✅ Uploaded successfully! File ID: ${result.file.id}`);
+
+        // 🔥 Update recording with both the correct name and fileId
+        if (recording) {
+          setTempRecordings((prev) =>
+            prev.map((rec) =>
+              rec.id === recording.id
+                ? { ...rec, name: safeName, fileId: result.file.id }
+                : rec
+            )
+          );
+        }
       } else {
         alert(`❌ Upload failed: ${result.error || "Unknown error"}`);
       }
@@ -368,6 +381,7 @@ function VoiceRecorderApp() {
       alert("❌ Upload failed due to network/server error.");
     }
   };
+
 
 
   const handleDownload = (recording?: any) => {
@@ -388,8 +402,41 @@ function VoiceRecorderApp() {
     URL.revokeObjectURL(url);
   };
 
-  const deleteTempRecording = (id: string) => {
+  const deleteTempRecording = async (id: string) => {
+    const recording = tempRecordings.find((rec) => rec.id === id);
+    if (!recording) return;
+
+    // Optimistic UI update
     setTempRecordings((prev) => prev.filter((rec) => rec.id !== id));
+
+    try {
+      const token = sessionStorage.getItem("google_access_token");
+      if (!token) {
+        alert("❌ Please sign in with Google first.");
+        return;
+      }
+
+      if (!recording.fileId) {
+        alert("❌ This recording does not have a Google Drive ID yet.");
+        return;
+      }
+
+      const res = await fetch("/api/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, fileId: recording.fileId }), // ✅ use fileId
+      });
+
+      const result = await res.json();
+      if (!res.ok) {
+        alert(`❌ Could not delete on Drive: ${result.error || "Unknown error"}`);
+      } else {
+        alert(`✅ Deleted on Drive (file ID: ${result.deletedFileId})`);
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("❌ Delete failed due to network/server error.");
+    }
   };
 
   if (!isAuthenticated) {
