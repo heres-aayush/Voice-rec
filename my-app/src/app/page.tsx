@@ -1,28 +1,44 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Mic, Play, Upload, Pause, Square, SkipBack, SkipForward, LogOut, User } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { AuthProvider, useAuth } from "@/components/auth-context"
-import { WaveformVisualizer } from "@/components/waveform-visualizer"
-import { AudioTrimmer } from "@/components/audio-trimmer"
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Mic,
+  Play,
+  Upload,
+  Pause,
+  Square,
+  SkipBack,
+  SkipForward,
+  LogOut,
+  User,
+} from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { AuthProvider, useAuth } from "@/components/auth-context";
+import { WaveformVisualizer } from "@/components/waveform-visualizer";
+import { AudioTrimmer } from "./../components/audio-trimmer";
 
 function VoiceRecorderApp() {
-  const { isAuthenticated, user, login, logout } = useAuth()
-  const [isRecording, setIsRecording] = useState(false)
-  const [isPaused, setIsPaused] = useState(false)
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
-  const [audioUrl, setAudioUrl] = useState<string | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [recordingTime, setRecordingTime] = useState(0)
-  const [audioLevel, setAudioLevel] = useState(0)
-  const [showSaveDialog, setShowSaveDialog] = useState(false)
-  const [showTrimDialog, setShowTrimDialog] = useState(false) // Added trim dialog state
-  const [fileName, setFileName] = useState("")
+  const { isAuthenticated, user, login, logout } = useAuth();
+  const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [audioLevel, setAudioLevel] = useState(0);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [showTrimDialog, setShowTrimDialog] = useState(false); // Added trim dialog state
+  const [fileName, setFileName] = useState("");
   const [tempRecordings, setTempRecordings] = useState<
     Array<{
       id: string;
@@ -32,55 +48,55 @@ function VoiceRecorderApp() {
       duration: number;
       fileId: string;
     }>
-  >([])
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null)
+  >([]);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
 
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const analyserRef = useRef<AnalyserNode | null>(null)
-  const animationFrameRef = useRef<number>()
-  const timerRef = useRef<NodeJS.Timeout>()
-  const chunksRef = useRef<BlobPart[]>([])
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number>();
+  const timerRef = useRef<NodeJS.Timeout>();
+  const chunksRef = useRef<BlobPart[]>([]);
   const [driveFiles, setDriveFiles] = useState<any[]>([]);
   const [loadingDriveFiles, setLoadingDriveFiles] = useState(true);
 
   useEffect(() => {
     return () => {
       if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current)
+        cancelAnimationFrame(animationFrameRef.current);
       }
       if (timerRef.current) {
-        clearInterval(timerRef.current)
+        clearInterval(timerRef.current);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
+    const audio = audioRef.current;
+    if (!audio) return;
 
-    const updateTime = () => setCurrentTime(audio.currentTime)
-    const updateDuration = () => setDuration(audio.duration)
+    const updateTime = () => setCurrentTime(audio.currentTime);
+    const updateDuration = () => setDuration(audio.duration);
     const handleEnded = () => {
-      setIsPlaying(false)
-      setCurrentPlayingId(null)
-      setCurrentTime(0)
-    }
+      setIsPlaying(false);
+      setCurrentPlayingId(null);
+      setCurrentTime(0);
+    };
 
-    audio.addEventListener("timeupdate", updateTime)
-    audio.addEventListener("loadedmetadata", updateDuration)
-    audio.addEventListener("ended", handleEnded)
+    audio.addEventListener("timeupdate", updateTime);
+    audio.addEventListener("loadedmetadata", updateDuration);
+    audio.addEventListener("ended", handleEnded);
 
     return () => {
-      audio.removeEventListener("timeupdate", updateTime)
-      audio.removeEventListener("loadedmetadata", updateDuration)
-      audio.removeEventListener("ended", handleEnded)
-    }
-  }, [])
+      audio.removeEventListener("timeupdate", updateTime);
+      audio.removeEventListener("loadedmetadata", updateDuration);
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, []);
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchDriveFiles = async () => {
       const token = sessionStorage.getItem("google_access_token");
       if (!token) {
@@ -112,124 +128,124 @@ function VoiceRecorderApp() {
 
   const startRecording = async () => {
     if (!isAuthenticated) {
-      alert("Please sign in to start recording")
-      return
+      alert("Please sign in to start recording");
+      return;
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream)
-      const audioContext = new AudioContext()
-      const analyser = audioContext.createAnalyser()
-      const source = audioContext.createMediaStreamSource(stream)
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      const audioContext = new AudioContext();
+      const analyser = audioContext.createAnalyser();
+      const source = audioContext.createMediaStreamSource(stream);
 
-      source.connect(analyser)
-      analyser.fftSize = 256
-      analyserRef.current = analyser
+      source.connect(analyser);
+      analyser.fftSize = 256;
+      analyserRef.current = analyser;
 
-      chunksRef.current = []
+      chunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
-        chunksRef.current.push(event.data)
-      }
+        chunksRef.current.push(event.data);
+      };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/wav" })
-        handleRecordingComplete(blob) // Use new handler
-        stream.getTracks().forEach((track) => track.stop())
-      }
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        handleRecordingComplete(blob); // Use new handler
+        stream.getTracks().forEach((track) => track.stop());
+      };
 
-      mediaRecorderRef.current = mediaRecorder
-      mediaRecorder.start()
-      setIsRecording(true)
-      setIsPaused(false)
-      setRecordingTime(0)
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
+      setIsPaused(false);
+      setRecordingTime(0);
 
       // Start timer
       timerRef.current = setInterval(() => {
-        setRecordingTime((prev) => prev + 1)
-      }, 1000)
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
 
       // Start audio level monitoring
-      monitorAudioLevel()
+      monitorAudioLevel();
     } catch (error) {
-      console.error("Error accessing microphone:", error)
+      console.error("Error accessing microphone:", error);
     }
-  }
+  };
 
   const pauseRecording = () => {
     if (mediaRecorderRef.current && isRecording && !isPaused) {
-      mediaRecorderRef.current.pause()
-      setIsPaused(true)
+      mediaRecorderRef.current.pause();
+      setIsPaused(true);
       if (timerRef.current) {
-        clearInterval(timerRef.current)
+        clearInterval(timerRef.current);
       }
     }
-  }
+  };
 
   const resumeRecording = () => {
     if (mediaRecorderRef.current && isRecording && isPaused) {
-      mediaRecorderRef.current.resume()
-      setIsPaused(false)
+      mediaRecorderRef.current.resume();
+      setIsPaused(false);
       // Resume timer
       timerRef.current = setInterval(() => {
-        setRecordingTime((prev) => prev + 1)
-      }, 1000)
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
     }
-  }
+  };
 
   const monitorAudioLevel = () => {
-    if (!analyserRef.current) return
+    if (!analyserRef.current) return;
 
-    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount)
+    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
 
     const updateLevel = () => {
-      if (!analyserRef.current || !isRecording || isPaused) return
+      if (!analyserRef.current || !isRecording || isPaused) return;
 
-      analyserRef.current.getByteFrequencyData(dataArray)
-      const average = dataArray.reduce((a, b) => a + b) / dataArray.length
-      setAudioLevel(average / 255)
+      analyserRef.current.getByteFrequencyData(dataArray);
+      const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+      setAudioLevel(average / 255);
 
-      animationFrameRef.current = requestAnimationFrame(updateLevel)
-    }
+      animationFrameRef.current = requestAnimationFrame(updateLevel);
+    };
 
-    updateLevel()
-  }
+    updateLevel();
+  };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop()
-      setIsRecording(false)
-      setIsPaused(false)
-      setAudioLevel(0)
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      setIsPaused(false);
+      setAudioLevel(0);
 
       if (timerRef.current) {
-        clearInterval(timerRef.current)
+        clearInterval(timerRef.current);
       }
 
       if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current)
+        cancelAnimationFrame(animationFrameRef.current);
       }
     }
-  }
+  };
 
   const handleRecordingComplete = (blob: Blob) => {
-    setAudioBlob(blob)
-    setAudioUrl(URL.createObjectURL(blob))
-    setShowTrimDialog(true)
-  }
+    setAudioBlob(blob);
+    setAudioUrl(URL.createObjectURL(blob));
+    setShowTrimDialog(true);
+  };
 
   const handleTrimComplete = (trimmedBlob: Blob) => {
-    setAudioBlob(trimmedBlob)
-    setAudioUrl(URL.createObjectURL(trimmedBlob))
-    setShowTrimDialog(false)
-    setShowSaveDialog(true)
-  }
+    setAudioBlob(trimmedBlob);
+    setAudioUrl(URL.createObjectURL(trimmedBlob));
+    setShowTrimDialog(false);
+    setShowSaveDialog(true);
+  };
 
   const handleSkipTrim = () => {
-    setShowTrimDialog(false)
-    setShowSaveDialog(true)
-  }
+    setShowTrimDialog(false);
+    setShowSaveDialog(true);
+  };
 
   const saveRecording = () => {
     if (!audioBlob) return;
@@ -250,94 +266,98 @@ function VoiceRecorderApp() {
       fileId: "", // Add fileId as required by the type
     };
 
-    setTempRecordings((prev) => [...prev, newRecording])
-    setShowSaveDialog(false)
-    setFileName("")
+    setTempRecordings((prev) => [...prev, newRecording]);
+    setShowSaveDialog(false);
+    setFileName("");
 
     // Clear current recording from main state
-    setAudioBlob(null)
-    setAudioUrl(null)
-    setRecordingTime(0)
-    setIsPlaying(false)
-  }
+    setAudioBlob(null);
+    setAudioUrl(null);
+    setRecordingTime(0);
+    setIsPlaying(false);
+  };
 
   const togglePlayback = () => {
-    if (!audioRef.current || !audioUrl) return
+    if (!audioRef.current || !audioUrl) return;
 
     if (isPlaying) {
-      audioRef.current.pause()
-      setIsPlaying(false)
+      audioRef.current.pause();
+      setIsPlaying(false);
     } else {
-      audioRef.current.play()
-      setIsPlaying(true)
+      audioRef.current.play();
+      setIsPlaying(true);
     }
-  }
+  };
 
   const playTempRecording = (recording: any) => {
     if (audioRef.current) {
       if (currentPlayingId === recording.id && isPlaying) {
-        audioRef.current.pause()
-        setIsPlaying(false)
-        setCurrentPlayingId(null)
+        audioRef.current.pause();
+        setIsPlaying(false);
+        setCurrentPlayingId(null);
       } else {
-        setCurrentTime(0)
-        setDuration(0)
-        audioRef.current.src = recording.url
-        audioRef.current.load()
-        audioRef.current.play()
-        setIsPlaying(true)
-        setCurrentPlayingId(recording.id)
+        setCurrentTime(0);
+        setDuration(0);
+        audioRef.current.src = recording.url;
+        audioRef.current.load();
+        audioRef.current.play();
+        setIsPlaying(true);
+        setCurrentPlayingId(recording.id);
       }
     }
-  }
+  };
 
   const seekTo = (time: number) => {
     if (audioRef.current) {
-      audioRef.current.currentTime = time
-      setCurrentTime(time)
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
     }
-  }
+  };
 
   const skipBackward = () => {
     if (audioRef.current) {
-      const newTime = Math.max(0, audioRef.current.currentTime - 10)
-      seekTo(newTime)
+      const newTime = Math.max(0, audioRef.current.currentTime - 10);
+      seekTo(newTime);
     }
-  }
+  };
 
   const skipForward = () => {
     if (audioRef.current) {
-      const newTime = Math.min(duration, audioRef.current.currentTime + 10)
-      seekTo(newTime)
+      const newTime = Math.min(duration, audioRef.current.currentTime + 10);
+      seekTo(newTime);
     }
-  }
+  };
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
 
   const formatTimeDetailed = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
 
   const handleUploadToDrive = async (recording?: any) => {
-    const blob = recording ? recording.blob : audioBlob
-    const nameInput = recording ? recording.name : fileName.trim()
+    const blob = recording ? recording.blob : audioBlob;
+    const nameInput = recording ? recording.name : fileName.trim();
 
     if (!blob) {
-      alert("❌ No recording to upload.")
-      return
+      alert("❌ No recording to upload.");
+      return;
     }
 
     try {
-      const token = sessionStorage.getItem("google_access_token")
+      const token = sessionStorage.getItem("google_access_token");
       if (!token) {
-        alert("❌ Please sign in with Google first.")
-        return
+        alert("❌ Please sign in with Google first.");
+        return;
       }
 
       // Generate final filename
@@ -355,8 +375,7 @@ function VoiceRecorderApp() {
         body: formData,
       });
 
-
-      const result = await res.json()
+      const result = await res.json();
 
       if (res.ok) {
         alert(`✅ Uploaded successfully! File ID: ${result.file.id}`);
@@ -372,29 +391,31 @@ function VoiceRecorderApp() {
           );
         }
       } else {
-        alert(`❌ Upload failed: ${result.error || "Unknown error"}`)
+        alert(`❌ Upload failed: ${result.error || "Unknown error"}`);
       }
     } catch (err) {
-      console.error("Upload error:", err)
-      alert("❌ Upload failed due to network/server error.")
+      console.error("Upload error:", err);
+      alert("❌ Upload failed due to network/server error.");
     }
   };
 
   const handleDownload = (recording?: any) => {
-    const blob = recording ? recording.blob : audioBlob
-    const name = recording ? recording.name : `recording-${new Date().toISOString().slice(0, 19)}`
+    const blob = recording ? recording.blob : audioBlob;
+    const name = recording
+      ? recording.name
+      : `recording-${new Date().toISOString().slice(0, 19)}`;
 
-    if (!blob) return
+    if (!blob) return;
 
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${name}.wav`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${name}.wav`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const deleteTempRecording = async (id: string) => {
     const recording = tempRecordings.find((rec) => rec.id === id);
@@ -423,7 +444,9 @@ function VoiceRecorderApp() {
 
       const result = await res.json();
       if (!res.ok) {
-        alert(`❌ Could not delete on Drive: ${result.error || "Unknown error"}`);
+        alert(
+          `❌ Could not delete on Drive: ${result.error || "Unknown error"}`
+        );
       } else {
         alert(`✅ Deleted on Drive (file ID: ${result.deletedFileId})`);
       }
@@ -443,11 +466,16 @@ function VoiceRecorderApp() {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Mic className="w-5 h-5 text-primary-foreground" />
               </div>
-              <h1 className="text-xl font-bold text-foreground">VoiceCapture Pro</h1>
+              <h1 className="text-xl font-bold text-foreground">
+                VoiceCapture Pro
+              </h1>
             </div>
             <div className="flex items-center space-x-4">
               <ThemeToggle />
-              <Button onClick={login} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button
+                onClick={login}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
                 Sign in with Google
               </Button>
             </div>
@@ -462,15 +490,20 @@ function VoiceRecorderApp() {
               <span className="text-primary block">Made Simple</span>
             </h2>
             <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto text-pretty">
-              Record high-quality audio with seamless Google Drive integration. Sign in to get started.
+              Record high-quality audio with seamless Google Drive integration.
+              Sign in to get started.
             </p>
-            <Button onClick={login} size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg">
+            <Button
+              onClick={login}
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg"
+            >
               Sign in with Google to Start Recording
             </Button>
           </div>
         </section>
       </div>
-    )
+    );
   }
 
   return (
@@ -482,7 +515,9 @@ function VoiceRecorderApp() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <Mic className="w-5 h-5 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-bold text-foreground">VoiceCapture Pro</h1>
+            <h1 className="text-xl font-bold text-foreground">
+              VoiceCapture Pro
+            </h1>
           </div>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -534,7 +569,13 @@ function VoiceRecorderApp() {
                     />
                   )}
                   <Button
-                    onClick={isRecording ? (isPaused ? resumeRecording : pauseRecording) : startRecording}
+                    onClick={
+                      isRecording
+                        ? isPaused
+                          ? resumeRecording
+                          : pauseRecording
+                        : startRecording
+                    }
                     size="lg"
                     className={`w-24 h-24 rounded-full text-white font-semibold transition-all duration-300 ${
                       isRecording
@@ -544,7 +585,9 @@ function VoiceRecorderApp() {
                         : "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
                     }`}
                     style={{
-                      transform: isRecording ? `scale(${1 + audioLevel * 0.1})` : "scale(1)",
+                      transform: isRecording
+                        ? `scale(${1 + audioLevel * 0.1})`
+                        : "scale(1)",
                     }}
                   >
                     {isRecording ? (
@@ -563,8 +606,12 @@ function VoiceRecorderApp() {
               {/* Recording Status */}
               {isRecording && (
                 <div className="space-y-4">
-                  <div className="text-2xl font-mono text-foreground">{formatTime(recordingTime)}</div>
-                  <div className="text-sm text-muted-foreground">{isPaused ? "Recording Paused" : "Recording..."}</div>
+                  <div className="text-2xl font-mono text-foreground">
+                    {formatTime(recordingTime)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {isPaused ? "Recording Paused" : "Recording..."}
+                  </div>
 
                   <div className="flex justify-center gap-4">
                     <Button
@@ -583,13 +630,23 @@ function VoiceRecorderApp() {
               {/* Audio Playback Controls */}
               {audioUrl && !isRecording && (
                 <div className="space-y-4 p-6 bg-muted/30 rounded-lg">
-                  <h3 className="text-lg font-semibold text-foreground">Recording Complete</h3>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Recording Complete
+                  </h3>
                   <div className="flex justify-center gap-4">
-                    <Button onClick={togglePlayback} variant="outline" size="lg">
+                    <Button
+                      onClick={togglePlayback}
+                      variant="outline"
+                      size="lg"
+                    >
                       <Play className="w-5 h-5 mr-2" />
                       {isPlaying ? "Pause" : "Play"}
                     </Button>
-                    <Button onClick={() => handleDownload()} variant="outline" size="lg">
+                    <Button
+                      onClick={() => handleDownload()}
+                      variant="outline"
+                      size="lg"
+                    >
                       Download
                     </Button>
                     <Button onClick={handleUploadToDrive} size="lg">
@@ -597,41 +654,65 @@ function VoiceRecorderApp() {
                       Upload to Drive
                     </Button>
                   </div>
-                  <div className="text-sm text-muted-foreground">Duration: {formatTime(recordingTime)}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Duration: {formatTime(recordingTime)}
+                  </div>
                 </div>
               )}
 
               {/* Temporary Recordings */}
               {tempRecordings.length > 0 && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-foreground">Saved Recordings</h3>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Saved Recordings
+                  </h3>
                   <div className="space-y-2">
                     {tempRecordings.map((recording) => (
-                      <div key={recording.id} className="p-4 bg-muted/20 rounded-lg space-y-3">
+                      <div
+                        key={recording.id}
+                        className="p-4 bg-muted/20 rounded-lg space-y-3"
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
                             <Button
                               onClick={() => playTempRecording(recording)}
                               variant="ghost"
                               size="sm"
-                              className={currentPlayingId === recording.id && isPlaying ? "bg-primary/10" : ""}
+                              className={
+                                currentPlayingId === recording.id && isPlaying
+                                  ? "bg-primary/10"
+                                  : ""
+                              }
                             >
-                              {currentPlayingId === recording.id && isPlaying ? (
+                              {currentPlayingId === recording.id &&
+                              isPlaying ? (
                                 <Pause className="w-4 h-4" />
                               ) : (
                                 <Play className="w-4 h-4" />
                               )}
                             </Button>
                             <div>
-                              <div className="font-medium text-foreground">{recording.name}</div>
-                              <div className="text-sm text-muted-foreground">{formatTime(recording.duration)}</div>
+                              <div className="font-medium text-foreground">
+                                {recording.name}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {formatTime(recording.duration)}
+                              </div>
                             </div>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <Button onClick={() => handleDownload(recording)} variant="outline" size="sm">
+                            <Button
+                              onClick={() => handleDownload(recording)}
+                              variant="outline"
+                              size="sm"
+                            >
                               Download
                             </Button>
-                            <Button onClick={() => deleteTempRecording(recording.id)} variant="destructive" size="sm">
+                            <Button
+                              onClick={() => deleteTempRecording(recording.id)}
+                              variant="destructive"
+                              size="sm"
+                            >
                               Delete
                             </Button>
                             <Button
@@ -657,24 +738,42 @@ function VoiceRecorderApp() {
                             <div
                               className="relative w-full h-2 bg-muted rounded-full cursor-pointer group"
                               onClick={(e) => {
-                                if (!audioRef.current || !duration) return
-                                const rect = e.currentTarget.getBoundingClientRect()
-                                const clickX = e.clientX - rect.left
-                                const percentage = Math.max(0, Math.min(1, clickX / rect.width))
-                                const newTime = percentage * duration
-                                seekTo(newTime)
+                                if (!audioRef.current || !duration) return;
+                                const rect =
+                                  e.currentTarget.getBoundingClientRect();
+                                const clickX = e.clientX - rect.left;
+                                const percentage = Math.max(
+                                  0,
+                                  Math.min(1, clickX / rect.width)
+                                );
+                                const newTime = percentage * duration;
+                                seekTo(newTime);
                               }}
                             >
                               <div
                                 className="absolute top-0 left-0 h-full bg-primary rounded-full transition-all duration-150"
                                 style={{
-                                  width: `${duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0}%`,
+                                  width: `${
+                                    duration > 0
+                                      ? Math.min(
+                                          100,
+                                          (currentTime / duration) * 100
+                                        )
+                                      : 0
+                                  }%`,
                                 }}
                               />
                               <div
                                 className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full shadow-sm transition-all duration-150 opacity-0 group-hover:opacity-100"
                                 style={{
-                                  left: `${duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0}%`,
+                                  left: `${
+                                    duration > 0
+                                      ? Math.min(
+                                          100,
+                                          (currentTime / duration) * 100
+                                        )
+                                      : 0
+                                  }%`,
                                   marginLeft: "-6px",
                                 }}
                               />
@@ -682,17 +781,32 @@ function VoiceRecorderApp() {
 
                             {/* Playback Controls */}
                             <div className="flex items-center justify-center space-x-2">
-                              <Button onClick={skipBackward} variant="ghost" size="sm" disabled={!duration}>
+                              <Button
+                                onClick={skipBackward}
+                                variant="ghost"
+                                size="sm"
+                                disabled={!duration}
+                              >
                                 <SkipBack className="w-4 h-4" />
                               </Button>
-                              <Button onClick={() => playTempRecording(recording)} variant="outline" size="sm">
-                                {currentPlayingId === recording.id && isPlaying ? (
+                              <Button
+                                onClick={() => playTempRecording(recording)}
+                                variant="outline"
+                                size="sm"
+                              >
+                                {currentPlayingId === recording.id &&
+                                isPlaying ? (
                                   <Pause className="w-4 h-4" />
                                 ) : (
                                   <Play className="w-4 h-4" />
                                 )}
                               </Button>
-                              <Button onClick={skipForward} variant="ghost" size="sm" disabled={!duration}>
+                              <Button
+                                onClick={skipForward}
+                                variant="ghost"
+                                size="sm"
+                                disabled={!duration}
+                              >
                                 <SkipForward className="w-4 h-4" />
                               </Button>
                             </div>
@@ -711,7 +825,9 @@ function VoiceRecorderApp() {
                 {loadingDriveFiles ? (
                   <p className="text-sm text-muted-foreground">Loading...</p>
                 ) : driveFiles.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No recordings found in Drive.</p>
+                  <p className="text-sm text-muted-foreground">
+                    No recordings found in Drive.
+                  </p>
                 ) : (
                   <div className="space-y-2">
                     {driveFiles.map((file) => (
@@ -720,9 +836,12 @@ function VoiceRecorderApp() {
                         className="p-4 bg-muted/20 rounded-lg flex items-center justify-between"
                       >
                         <div>
-                          <div className="font-medium text-foreground">{file.name}</div>
+                          <div className="font-medium text-foreground">
+                            {file.name}
+                          </div>
                           <div className="text-sm text-muted-foreground">
-                            Created: {new Date(file.createdTime).toLocaleString()}
+                            Created:{" "}
+                            {new Date(file.createdTime).toLocaleString()}
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -779,7 +898,9 @@ function VoiceRecorderApp() {
             <DialogTitle>Save Recording</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-muted-foreground">Enter a name for your recording:</p>
+            <p className="text-muted-foreground">
+              Enter a name for your recording:
+            </p>
             <Input
               value={fileName}
               onChange={(e) => setFileName(e.target.value)}
@@ -792,9 +913,7 @@ function VoiceRecorderApp() {
             <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={saveRecording}>
-              Save
-            </Button>
+            <Button onClick={saveRecording}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -806,9 +925,13 @@ function VoiceRecorderApp() {
             <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
               <Mic className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-foreground">VoiceCapture Pro</span>
+            <span className="font-semibold text-foreground">
+              VoiceCapture Pro
+            </span>
           </div>
-          <p className="text-muted-foreground mb-4">Professional voice recording made simple and accessible.</p>
+          <p className="text-muted-foreground mb-4">
+            Professional voice recording made simple and accessible.
+          </p>
           <div className="flex items-center justify-center space-x-6 text-sm text-muted-foreground">
             <a href="#" className="hover:text-foreground transition-colors">
               Privacy Policy
@@ -824,9 +947,11 @@ function VoiceRecorderApp() {
       </footer>
 
       {/* Hidden audio element for playback */}
-      {(audioUrl || tempRecordings.length > 0) && <audio ref={audioRef} className="hidden" />}
+      {(audioUrl || tempRecordings.length > 0) && (
+        <audio ref={audioRef} className="hidden" />
+      )}
     </div>
-  )
+  );
 }
 
 export default function VoiceRecorderLanding() {
@@ -834,5 +959,5 @@ export default function VoiceRecorderLanding() {
     <AuthProvider>
       <VoiceRecorderApp />
     </AuthProvider>
-  )
+  );
 }
