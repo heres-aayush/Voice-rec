@@ -474,7 +474,7 @@ function VoiceRecorderApp() {
               <ThemeToggle />
               <Button
                 onClick={login}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-[#000000] border border-white text-white hover:bg-[#ff2e63] hover:border-white"
               >
                 Sign in with Google
               </Button>
@@ -496,7 +496,7 @@ function VoiceRecorderApp() {
             <Button
               onClick={login}
               size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg"
+              className="bg-[#000000] border border-white hover:bg-[#ff2e63] hover:border-white text-white px-8 py-4 text-lg"
             >
               Sign in with Google to Start Recording
             </Button>
@@ -552,7 +552,7 @@ function VoiceRecorderApp() {
                 <div className="relative">
                   {isRecording && (
                     <div
-                      className="absolute inset-0 rounded-full bg-emerald-400/30 animate-ping"
+                      className="absolute inset-0 rounded-full bg-cyan-400/30 animate-ping"
                       style={{
                         animationDuration: "2s",
                         transform: `scale(${1 + audioLevel * 0.5})`,
@@ -561,7 +561,7 @@ function VoiceRecorderApp() {
                   )}
                   {isRecording && (
                     <div
-                      className="absolute inset-0 rounded-full bg-emerald-300/20 animate-pulse"
+                      className="absolute inset-0 rounded-full bg-cyan-300/20 animate-pulse"
                       style={{
                         animationDuration: "1.5s",
                         transform: `scale(${1 + audioLevel * 0.3})`,
@@ -581,7 +581,7 @@ function VoiceRecorderApp() {
                       isRecording
                         ? isPaused
                           ? "bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/25"
-                          : "bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/25"
+                          : "bg-cyan-500 hover:bg-cyan-600 shadow-lg shadow-cyan-500/25"
                         : "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
                     }`}
                     style={{
