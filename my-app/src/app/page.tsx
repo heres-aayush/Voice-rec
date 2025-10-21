@@ -399,6 +399,44 @@ function VoiceRecorderApp() {
     }
   };
 
+  const handleUploadToS3 = async (recording?: any) => {
+    const blob = recording ? recording.blob : audioBlob;
+    const nameInput = recording ? recording.name : fileName.trim();
+
+    if (!blob) {
+      alert("❌ No recording to upload.");
+      return;
+    }
+
+    try {
+      // Build filename
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const fileKey = nameInput
+        ? `${nameInput}-${timestamp}.webm`
+        : `recording-${timestamp}.webm`;
+
+      // Send FormData with the actual blob
+      const formData = new FormData();
+      formData.append("file", blob, fileKey); // ⚡ important: key = blob
+
+      const res = await fetch("/api/s3-upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert(`✅ Uploaded to S3 successfully! Key: ${data.key}`);
+      } else {
+        alert(`❌ S3 upload failed: ${data.error || "Unknown error"}`);
+      }
+    } catch (err) {
+      console.error("S3 upload error:", err);
+      alert("❌ Upload to S3 failed due to network/server error.");
+    }
+  };
+
   const handleDownload = (recording?: any) => {
     const blob = recording ? recording.blob : audioBlob;
     const name = recording
@@ -653,6 +691,10 @@ function VoiceRecorderApp() {
                       <Upload className="w-5 h-5 mr-2" />
                       Upload to Drive
                     </Button>
+                    <Button onClick={handleUploadToS3} size="lg">
+                      <Upload className="w-5 h-5 mr-2" />
+                      Upload to S3
+                    </Button>
                   </div>
                   <div className="text-sm text-muted-foreground">
                     Duration: {formatTime(recordingTime)}
@@ -723,6 +765,15 @@ function VoiceRecorderApp() {
                             >
                               <Upload className="w-4 h-4 mr-1" />
                               Drive
+                            </Button>
+                            <Button
+                              onClick={() => handleUploadToS3(recording)}
+                              variant="default"
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                              <Upload className="w-4 h-4 mr-1" />
+                              S3
                             </Button>
                           </div>
                         </div>
