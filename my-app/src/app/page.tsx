@@ -263,14 +263,13 @@ function VoiceRecorderApp() {
       blob: audioBlob,
       url: audioUrl!,
       duration: recordingTime,
-      fileId: "", // Add fileId as required by the type
+      fileId: "",
     };
 
     setTempRecordings((prev) => [...prev, newRecording]);
     setShowSaveDialog(false);
     setFileName("");
 
-    // Clear current recording from main state
     setAudioBlob(null);
     setAudioUrl(null);
     setRecordingTime(0);
@@ -378,9 +377,9 @@ function VoiceRecorderApp() {
       const result = await res.json();
 
       if (res.ok) {
-        alert(`✅ Uploaded successfully! File ID: ${result.file.id}`);
+        alert(`✅ Uploaded successfully!`);
 
-        // 🔥 Update recording with both the correct name and fileId
+
         if (recording) {
           setTempRecordings((prev) =>
             prev.map((rec) =>
@@ -409,15 +408,13 @@ function VoiceRecorderApp() {
     }
 
     try {
-      // Build filename
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       const fileKey = nameInput
         ? `${nameInput}-${timestamp}.webm`
         : `recording-${timestamp}.webm`;
 
-      // Send FormData with the actual blob
       const formData = new FormData();
-      formData.append("file", blob, fileKey); // ⚡ important: key = blob
+      formData.append("file", blob, fileKey); 
 
       const res = await fetch("/api/s3-upload", {
         method: "POST",
@@ -427,7 +424,7 @@ function VoiceRecorderApp() {
       const data = await res.json();
 
       if (res.ok) {
-        alert(`✅ Uploaded to S3 successfully! Key: ${data.key}`);
+        alert(`✅ Uploaded to S3 successfully!`);
       } else {
         alert(`❌ S3 upload failed: ${data.error || "Unknown error"}`);
       }
@@ -459,7 +456,6 @@ function VoiceRecorderApp() {
     const recording = tempRecordings.find((rec) => rec.id === id);
     if (!recording) return;
 
-    // Optimistic UI update
     setTempRecordings((prev) => prev.filter((rec) => rec.id !== id));
 
     try {
@@ -477,7 +473,7 @@ function VoiceRecorderApp() {
       const res = await fetch("/api/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, fileId: recording.fileId }), // ✅ use fileId
+        body: JSON.stringify({ token, fileId: recording.fileId }),
       });
 
       const result = await res.json();

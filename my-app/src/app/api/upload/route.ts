@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    // Parse incoming FormData
     const formData = await req.formData();
-    const file = formData.get("file") as File | null; // File object keeps name & type
+    const file = formData.get("file") as File | null;
     const token = formData.get("token") as string | null;
 
     if (!file) {
@@ -31,10 +30,8 @@ export async function POST(req: NextRequest) {
 
     let folderId: string | null = null;
     if (searchData.files && searchData.files.length > 0) {
-      // Folder exists
       folderId = searchData.files[0].id;
     } else {
-      // Folder not found → create it
       const folderMetadata = {
         name: "voice-recorder",
         mimeType: "application/vnd.google-apps.folder",
@@ -67,14 +64,12 @@ export async function POST(req: NextRequest) {
       folderId = folderData.id;
     }
 
-    // Use the filename from the uploaded file
     const metadata = {
       name: file.name,
       mimeType: file.type || "audio/webm",
       parents: folderId ? [folderId] : undefined,
     };
 
-    // Build multipart request safely with FormData
     const googleForm = new FormData();
     googleForm.append(
       "metadata",
@@ -82,7 +77,6 @@ export async function POST(req: NextRequest) {
     );
     googleForm.append("file", file);
 
-    // Upload to Google Drive
     const res = await fetch(
       "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
       {
@@ -106,7 +100,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ Success response
     return NextResponse.json({ success: true, file: data });
   } catch (err: any) {
     console.error("Upload error:", err);

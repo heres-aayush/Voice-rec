@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-// ⚠️ Make sure these env variables are set in your .env file
 const REGION = process.env.NEXT_PUBLIC_AWS_REGION!;
 const ACCESS_KEY = process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID!;
 const SECRET_KEY = process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY!;
 const BUCKET_NAME = process.env.S3_INPUT_BUCKET_NAME!;
 
-// Create S3 client
 const s3 = new S3Client({
   region: REGION,
   credentials: {
@@ -18,7 +16,6 @@ const s3 = new S3Client({
 
 export async function POST(req: Request) {
   try {
-    // Use FormData because frontend is sending blob files
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
@@ -26,15 +23,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Generate unique key (you can use the filename directly if you want)
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const fileKey = `${file.name}-${timestamp}`;
 
-    // Convert file to ArrayBuffer to send to S3
     const arrayBuffer = await file.arrayBuffer();
     const fileBuffer = new Uint8Array(arrayBuffer);
 
-    // Upload to S3
     await s3.send(
       new PutObjectCommand({
         Bucket: BUCKET_NAME,

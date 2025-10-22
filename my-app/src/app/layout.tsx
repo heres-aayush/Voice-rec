@@ -8,9 +8,9 @@ import { Suspense } from "react"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Voice",
-  description: "Created with v0",
-  generator: "v0.app",
+  title: "Voice Recorder",
+  description: "Transcribe your voice",
+  generator: "",
 }
 
 export default function RootLayout({

@@ -11,7 +11,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Directly delete by fileId
     const deleteRes = await fetch(
       `https://www.googleapis.com/drive/v3/files/${fileId}`,
       {
