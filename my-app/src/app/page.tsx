@@ -47,6 +47,7 @@ function VoiceRecorderApp() {
       url: string;
       duration: number;
       fileId: string;
+      transcriptReady?: boolean;
     }>
   >([]);
   const [currentTime, setCurrentTime] = useState(0);
@@ -264,6 +265,7 @@ function VoiceRecorderApp() {
       url: audioUrl!,
       duration: recordingTime,
       fileId: "",
+      transcriptReady: false,
     };
 
     setTempRecordings((prev) => [...prev, newRecording]);
@@ -425,6 +427,15 @@ function VoiceRecorderApp() {
 
       if (res.ok) {
         alert(`✅ Uploaded to S3 successfully!`);
+        if (recording) {
+          setTempRecordings(prev =>
+            prev.map(rec =>
+              rec.id === recording.id
+                ? { ...rec, transcriptReady: true } // ✅ update state
+                : rec
+            )
+          );
+        }
       } else {
         alert(`❌ S3 upload failed: ${data.error || "Unknown error"}`);
       }
@@ -738,6 +749,31 @@ function VoiceRecorderApp() {
                               </div>
                             </div>
                           </div>
+                          {/* ✅ Conditional Button Display */}
+                          <div className="flex items-center space-x-2">
+                            {!recording.transcriptReady ? (
+                              <Button
+                                onClick={() => handleUploadToS3(recording)}
+                                variant="default"
+                                size="sm"
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                              >
+                                <Upload className="w-4 h-4 mr-1" />
+                                Upload to S3
+                              </Button>
+                            ) : (
+                              <Button
+                                onClick={() =>
+                                  window.location.pathname = "/show-output"
+                                }
+                                variant="default"
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                Show Transcript
+                              </Button>
+                            )}
+                          </div>
                           <div className="flex items-center space-x-2">
                             <Button
                               onClick={() => handleDownload(recording)}
@@ -762,7 +798,7 @@ function VoiceRecorderApp() {
                               <Upload className="w-4 h-4 mr-1" />
                               Drive
                             </Button>
-                            <Button
+                            {/* <Button
                               onClick={() => handleUploadToS3(recording)}
                               variant="default"
                               size="sm"
@@ -770,7 +806,7 @@ function VoiceRecorderApp() {
                             >
                               <Upload className="w-4 h-4 mr-1" />
                               S3
-                            </Button>
+                            </Button> */}
                           </div>
                         </div>
 
