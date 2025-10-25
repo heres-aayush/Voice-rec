@@ -130,10 +130,10 @@ function VoiceRecorderApp() {
   }, []);
 
   const startRecording = async () => {
-    if (!isAuthenticated) {
-      alert("Please sign in to start recording");
-      return;
-    }
+    // if (!isAuthenticated) {
+    //   alert("Please sign in to start recording");
+    //   return;
+    // }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -496,55 +496,55 @@ function VoiceRecorderApp() {
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
-        {/* Header */}
-        <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Mic className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <h1 className="text-xl font-bold text-foreground">
-                VoiceCapture Pro
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <ThemeToggle />
-              <Button
-                onClick={login}
-                className="bg-[#000000] border border-white text-white hover:bg-[#ff2e63] hover:border-white"
-              >
-                Sign in with Google
-              </Button>
-            </div>
-          </div>
-        </header>
+  // if (!isAuthenticated) {
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
+  //       {/* Header */}
+  //       <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+  //         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+  //           <div className="flex items-center space-x-2">
+  //             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+  //               <Mic className="w-5 h-5 text-primary-foreground" />
+  //             </div>
+  //             <h1 className="text-xl font-bold text-foreground">
+  //               VoiceCapture Pro
+  //             </h1>
+  //           </div>
+  //           <div className="flex items-center space-x-4">
+  //             <ThemeToggle />
+  //             <Button
+  //               onClick={login}
+  //               className="bg-[#000000] border border-white text-white hover:bg-[#ff2e63] hover:border-white"
+  //             >
+  //               Sign in with Google
+  //             </Button>
+  //           </div>
+  //         </div>
+  //       </header>
 
-        {/* Login Section */}
-        <section className="py-20 px-4">
-          <div className="container mx-auto text-center">
-            <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
-              Professional Voice Recording
-              <span className="text-primary block">Made Simple</span>
-            </h2>
-            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto text-pretty">
-              Record high-quality audio with seamless Google Drive integration.
-              Sign in to get started.
-            </p>
-            <Button
-              onClick={login}
-              size="lg"
-              className="bg-[#000000] border border-white hover:bg-[#ff2e63] hover:border-white text-white px-8 py-4 text-lg"
-            >
-              Sign in with Google to Start Recording
-            </Button>
-          </div>
-        </section>
-      </div>
-    );
-  }
+  //       {/* Login Section */}
+  //       <section className="py-20 px-4">
+  //         <div className="container mx-auto text-center">
+  //           <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
+  //             Professional Voice Recording
+  //             <span className="text-primary block">Made Simple</span>
+  //           </h2>
+  //           <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto text-pretty">
+  //             Record high-quality audio with seamless Google Drive integration.
+  //             Sign in to get started.
+  //           </p>
+  //           <Button
+  //             onClick={login}
+  //             size="lg"
+  //             className="bg-[#000000] border border-white hover:bg-[#ff2e63] hover:border-white text-white px-8 py-4 text-lg"
+  //           >
+  //             Sign in with Google to Start Recording
+  //           </Button>
+  //         </div>
+  //       </section>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
@@ -667,7 +667,7 @@ function VoiceRecorderApp() {
                 </div>
               )}
 
-              {/* Audio Playback Controls */}
+              {/*// Audio Playback Controls
               {audioUrl && !isRecording && (
                 <div className="space-y-4 p-6 bg-muted/30 rounded-lg">
                   <h3 className="text-lg font-semibold text-foreground">
@@ -702,7 +702,7 @@ function VoiceRecorderApp() {
                     Duration: {formatTime(recordingTime)}
                   </div>
                 </div>
-              )}
+              )} */}
 
               {/* Temporary Recordings */}
               {tempRecordings.length > 0 && (
