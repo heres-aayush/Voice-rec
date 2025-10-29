@@ -1,0 +1,168 @@
+{
+  "jobName": "medical-transcription-job-001",
+  "accountId": "123456789012",
+  "results": {
+    "transcripts": [
+      {
+        "transcript": "Patient reports occasional chest pain and shortness of breath."
+      }
+    ],
+    "items": [
+      {
+        "start_time": "0.00",
+        "end_time": "0.45",
+        "alternatives": [
+          {
+            "confidence": "0.98",
+            "content": "Patient"
+          }
+        ],
+        "type": "pronunciation"
+      },
+      {
+        "start_time": "0.46",
+        "end_time": "0.72",
+        "alternatives": [
+          {
+            "confidence": "0.97",
+            "content": "reports"
+          }
+        ],
+        "type": "pronunciation"
+      },
+      {
+        "alternatives": [
+          {
+            "confidence": "0.99",
+            "content": "occasional"
+          }
+        ],
+        "start_time": "0.73",
+        "end_time": "1.12",
+        "type": "pronunciation"
+      },
+      {
+        "alternatives": [
+          {
+            "confidence": "0.95",
+            "content": "chest"
+          }
+        ],
+        "start_time": "1.13",
+        "end_time": "1.35",
+        "type": "pronunciation"
+      },
+      {
+        "alternatives": [
+          {
+            "confidence": "0.94",
+            "content": "pain"
+          }
+        ],
+        "start_time": "1.36",
+        "end_time": "1.55",
+        "type": "pronunciation"
+      },
+      {
+        "alternatives": [
+          {
+            "confidence": "0.93",
+            "content": "and"
+          }
+        ],
+        "start_time": "1.56",
+        "end_time": "1.68",
+        "type": "pronunciation"
+      },
+      {
+        "alternatives": [
+          {
+            "confidence": "0.95",
+            "content": "shortness"
+          }
+        ],
+        "start_time": "1.69",
+        "end_time": "1.98",
+        "type": "pronunciation"
+      },
+      {
+        "alternatives": [
+          {
+            "confidence": "0.96",
+            "content": "of"
+          }
+        ],
+        "start_time": "1.99",
+        "end_time": "2.05",
+        "type": "pronunciation"
+      },
+      {
+        "alternatives": [
+          {
+            "confidence": "0.97",
+            "content": "breath"
+          }
+        ],
+        "start_time": "2.06",
+        "end_time": "2.30",
+        "type": "pronunciation"
+      },
+      {
+        "alternatives": [
+          {
+            "confidence": "0.99",
+            "content": "."
+          }
+        ],
+        "type": "punctuation"
+      }
+    ],
+    "speaker_labels": {
+      "speakers": 1,
+      "segments": [
+        {
+          "start_time": "0.00",
+          "speaker_label": "spk_0",
+          "end_time": "2.30",
+          "items": [
+            {
+              "start_time": "0.00",
+              "end_time": "0.45",
+              "speaker_label": "spk_0"
+            },
+            {
+              "start_time": "0.46",
+              "end_time": "0.72",
+              "speaker_label": "spk_0"
+            }
+          ]
+        }
+      ]
+    },
+    "medical_entities": [
+      {
+        "category": "MEDICAL_CONDITION",
+        "text": "chest pain",
+        "score": 0.97,
+        "beginOffset": 25,
+        "endOffset": 35
+      },
+      {
+        "category": "MEDICAL_CONDITION",
+        "text": "shortness of breath",
+        "score": 0.96,
+        "beginOffset": 40,
+        "endOffset": 59
+      }
+    ]
+  },
+  "status": "COMPLETED",
+  "metadata": {
+    "version": "1.0",
+    "type": "medical_transcription",
+    "specialty": "PRIMARYCARE",
+    "language": "en-US",
+    "creationTimestamp": "2025-10-29T12:00:00Z"
+  }
+}
+
