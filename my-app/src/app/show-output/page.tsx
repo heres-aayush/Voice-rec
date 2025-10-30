@@ -1,29 +1,31 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check, Download } from "lucide-react";
 
-export default function ShowOutput({ searchParams }: { searchParams: { Key?: string } }) {
+export default function ShowOutput() {
   const [transcript, setTranscript] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-  const key = searchParams.Key;
+  const [key, setKey] = useState<string>("");
 
-  useEffect(() => {
-    if (!key) {
-      setTranscript("No file specified.");
-      setLoading(false);
-      return;
-    }
-
+   useEffect(() => {
     const fetchTranscript = async () => {
       try {
-        const res = await fetch(`/api/get-s3?key=${encodeURIComponent(key)}`);
+        // Step 1: get the latest key
+        const re1 = await fetch(`/api/get-latest`);
+        const data1 = await re1.json();
+        const newKey = data1.key;
+        setKey(newKey);
+
+        // Step 2: fetch the transcript
+        const res = await fetch(`/api/get-s3?key=${encodeURIComponent(newKey)}`);
         if (!res.ok) throw new Error("Failed to fetch transcript");
 
         const data = await res.json();
-        const text = data.results?.transcripts?.[0]?.transcript || "Transcript is empty";
+        const text =
+          data.results?.transcripts?.[0]?.transcript ||
+          "Transcript is empty";
         setTranscript(text);
       } catch (err) {
         console.error(err);
@@ -34,7 +36,7 @@ export default function ShowOutput({ searchParams }: { searchParams: { Key?: str
     };
 
     fetchTranscript();
-  }, [key]);
+  }, []);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(transcript);
