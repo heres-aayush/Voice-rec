@@ -130,10 +130,10 @@ function VoiceRecorderApp() {
   }, []);
 
   const startRecording = async () => {
-    // if (!isAuthenticated) {
-    //   alert("Please sign in to start recording");
-    //   return;
-    // }
+    if (!isAuthenticated) {
+      alert("Please sign in to start recording");
+      return;
+    }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -346,60 +346,60 @@ function VoiceRecorderApp() {
       .padStart(2, "0")}`;
   };
 
-  const handleUploadToDrive = async (recording?: any) => {
-    const blob = recording ? recording.blob : audioBlob;
-    const nameInput = recording ? recording.name : fileName.trim();
+  // const handleUploadToDrive = async (recording?: any) => {
+  //   const blob = recording ? recording.blob : audioBlob;
+  //   const nameInput = recording ? recording.name : fileName.trim();
 
-    if (!blob) {
-      alert("❌ No recording to upload.");
-      return;
-    }
+  //   if (!blob) {
+  //     alert("❌ No recording to upload.");
+  //     return;
+  //   }
 
-    try {
-      const token = sessionStorage.getItem("google_access_token");
-      if (!token) {
-        alert("❌ Please sign in with Google first.");
-        return;
-      }
+  //   try {
+  //     const token = sessionStorage.getItem("google_access_token");
+  //     if (!token) {
+  //       alert("❌ Please sign in with Google first.");
+  //       return;
+  //     }
 
-      // Generate final filename
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const safeName = nameInput
-        ? `${nameInput}-${timestamp}.webm`
-        : `recording-${timestamp}.webm`;
+  //     // Generate final filename
+  //     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  //     const safeName = nameInput
+  //       ? `${nameInput}-${timestamp}.webm`
+  //       : `recording-${timestamp}.webm`;
 
-      const formData = new FormData();
-      formData.append("file", blob, safeName);
-      formData.append("token", token);
+  //     const formData = new FormData();
+  //     formData.append("file", blob, safeName);
+  //     formData.append("token", token);
 
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+  //     const res = await fetch("/api/upload", {
+  //       method: "POST",
+  //       body: formData,
+  //     });
 
-      const result = await res.json();
+  //     const result = await res.json();
 
-      if (res.ok) {
-        alert(`✅ Uploaded successfully!`);
+  //     if (res.ok) {
+  //       alert(`✅ Uploaded successfully!`);
 
 
-        if (recording) {
-          setTempRecordings((prev) =>
-            prev.map((rec) =>
-              rec.id === recording.id
-                ? { ...rec, name: safeName, fileId: result.file.id }
-                : rec
-            )
-          );
-        }
-      } else {
-        alert(`❌ Upload failed: ${result.error || "Unknown error"}`);
-      }
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert("❌ Upload failed due to network/server error.");
-    }
-  };
+  //       if (recording) {
+  //         setTempRecordings((prev) =>
+  //           prev.map((rec) =>
+  //             rec.id === recording.id
+  //               ? { ...rec, name: safeName, fileId: result.file.id }
+  //               : rec
+  //           )
+  //         );
+  //       }
+  //     } else {
+  //       alert(`❌ Upload failed: ${result.error || "Unknown error"}`);
+  //     }
+  //   } catch (err) {
+  //     console.error("Upload error:", err);
+  //     alert("❌ Upload failed due to network/server error.");
+  //   }
+  // };
 
   const handleUploadToS3 = async (recording?: any) => {
     const blob = recording ? recording.blob : audioBlob;
@@ -464,90 +464,90 @@ function VoiceRecorderApp() {
 
     setTempRecordings((prev) => prev.filter((rec) => rec.id !== id));
 
-    try {
-      const token = sessionStorage.getItem("google_access_token");
-      if (!token) {
-        alert("❌ Please sign in with Google first.");
-        return;
-      }
+    // try {
+    //   const token = sessionStorage.getItem("google_access_token");
+    //   if (!token) {
+    //     alert("❌ Please sign in with Google first.");
+    //     return;
+    //   }
 
-      if (!recording.fileId) {
-        alert("❌ This recording does not have a Google Drive ID yet.");
-        return;
-      }
+    //   if (!recording.fileId) {
+    //     alert("❌ This recording does not have a Google Drive ID yet.");
+    //     return;
+    //   }
 
-      const res = await fetch("/api/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, fileId: recording.fileId }),
-      });
+    //   const res = await fetch("/api/delete", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ token, fileId: recording.fileId }),
+    //   });
 
-      const result = await res.json();
-      if (!res.ok) {
-        alert(
-          `❌ Could not delete on Drive: ${result.error || "Unknown error"}`
-        );
-      } else {
-        alert(`✅ Deleted on Drive (file ID: ${result.deletedFileId})`);
-      }
-    } catch (err) {
-      console.error("Delete error:", err);
-      alert("❌ Delete failed due to network/server error.");
-    }
+    //   const result = await res.json();
+    //   if (!res.ok) {
+    //     alert(
+    //       `❌ Could not delete on Drive: ${result.error || "Unknown error"}`
+    //     );
+    //   } else {
+    //     alert(`✅ Deleted on Drive (file ID: ${result.deletedFileId})`);
+    //   }
+    // } catch (err) {
+    //   console.error("Delete error:", err);
+    //   alert("❌ Delete failed due to network/server error.");
+    // }
   };
 
-  // if (!isAuthenticated) {
-  //   return (
-  //     <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
-  //       {/* Header */}
-  //       <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-  //         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-  //           <div className="flex items-center space-x-2">
-  //             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-  //               <Mic className="w-5 h-5 text-primary-foreground" />
-  //             </div>
-  //             <h1 className="text-xl font-bold text-foreground">
-  //               VoiceCapture Pro
-  //             </h1>
-  //           </div>
-  //           <div className="flex items-center space-x-4">
-  //             <ThemeToggle />
-  //             <Button
-  //               onClick={login}
-  //               className="bg-[#000000] border border-white text-white hover:bg-[#ff2e63] hover:border-white"
-  //             >
-  //               Sign in with Google
-  //             </Button>
-  //           </div>
-  //         </div>
-  //       </header>
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
+        {/* Header */}
+        <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Mic className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <h1 className="text-xl font-bold text-foreground">
+                VoiceCapture Pro
+              </h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <ThemeToggle />
+              <Button
+                onClick={login}
+                className="bg-[#000000] border border-white text-white hover:bg-[#ff2e63] hover:border-white"
+              >
+                Sign in with Google
+              </Button>
+            </div>
+          </div>
+        </header>
 
-  //       {/* Login Section */}
-  //       <section className="py-20 px-4">
-  //         <div className="container mx-auto text-center">
-  //           <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
-  //             Professional Voice Recording
-  //             <span className="text-primary block">Made Simple</span>
-  //           </h2>
-  //           <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto text-pretty">
-  //             Record high-quality audio with seamless Google Drive integration.
-  //             Sign in to get started.
-  //           </p>
-  //           <Button
-  //             onClick={login}
-  //             size="lg"
-  //             className="bg-[#000000] border border-white hover:bg-[#ff2e63] hover:border-white text-white px-8 py-4 text-lg"
-  //           >
-  //             Sign in with Google to Start Recording
-  //           </Button>
-  //         </div>
-  //       </section>
-  //     </div>
-  //   );
-  // }
+        {/* Login Section */}
+        <section className="py-20 px-4">
+          <div className="container mx-auto text-center">
+            <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
+              Professional Voice Recording
+              <span className="text-primary block">Made Simple</span>
+            </h2>
+            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto text-pretty">
+              Record high-quality audio with seamless Google Drive integration.
+              Sign in to get started.
+            </p>
+            <Button
+              onClick={login}
+              size="lg"
+              className="bg-[#000000] border border-white hover:bg-[#ff2e63] hover:border-white text-white px-8 py-4 text-lg"
+            >
+              Sign in with Google to Start Recording
+            </Button>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-card to-background">
       {/* Header */}
       <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -667,43 +667,6 @@ function VoiceRecorderApp() {
                 </div>
               )}
 
-              {/*// Audio Playback Controls
-              {audioUrl && !isRecording && (
-                <div className="space-y-4 p-6 bg-muted/30 rounded-lg">
-                  <h3 className="text-lg font-semibold text-foreground">
-                    Recording Complete
-                  </h3>
-                  <div className="flex justify-center gap-4">
-                    <Button
-                      onClick={togglePlayback}
-                      variant="outline"
-                      size="lg"
-                    >
-                      <Play className="w-5 h-5 mr-2" />
-                      {isPlaying ? "Pause" : "Play"}
-                    </Button>
-                    <Button
-                      onClick={() => handleDownload()}
-                      variant="outline"
-                      size="lg"
-                    >
-                      Download
-                    </Button>
-                    <Button onClick={handleUploadToDrive} size="lg">
-                      <Upload className="w-5 h-5 mr-2" />
-                      Upload to Drive
-                    </Button>
-                    <Button onClick={handleUploadToS3} size="lg">
-                      <Upload className="w-5 h-5 mr-2" />
-                      Upload to S3
-                    </Button>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Duration: {formatTime(recordingTime)}
-                  </div>
-                </div>
-              )} */}
-
               {/* Temporary Recordings */}
               {tempRecordings.length > 0 && (
                 <div className="space-y-4">
@@ -757,9 +720,9 @@ function VoiceRecorderApp() {
                               variant="destructive"
                               size="sm"
                             >
-                              Delete
+                              Reset
                             </Button>
-                            <Button
+                            {/* {<Button
                               onClick={() => handleUploadToDrive(recording)}
                               variant="default"
                               size="sm"
@@ -767,7 +730,7 @@ function VoiceRecorderApp() {
                             >
                               <Upload className="w-4 h-4 mr-1" />
                               Drive
-                            </Button>
+                            </Button> } */}
                             <Button
                               onClick={() => handleUploadToS3(recording)}
                               variant="default"
@@ -775,12 +738,12 @@ function VoiceRecorderApp() {
                               className="bg-blue-600 hover:bg-blue-700 text-white"
                             >
                               <Upload className="w-4 h-4 mr-1" />
-                              S3
+                              Save
                             </Button>
                           </div>
                         </div>
 
-                        {showTranscriptButton && uploadedFileKey && (
+                        {/* {showTranscriptButton && uploadedFileKey && (
                           <Button
                             onClick={() => {
                               const encodedKey = encodeURIComponent(uploadedFileKey);
@@ -791,7 +754,7 @@ function VoiceRecorderApp() {
                           >
                             Show Transcript
                           </Button>
-                        )}
+                        )} */}
 
 
 
@@ -882,58 +845,27 @@ function VoiceRecorderApp() {
                         )}
                       </div>
                     ))}
+                    {showTranscriptButton && uploadedFileKey && (
+                      <Button
+                        onClick={() => {
+                          const encodedKey = encodeURIComponent(uploadedFileKey);
+                          window.location.href = `/show-output?key=${encodedKey}`;
+                        }}
+                        size="lg"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        Show Transcript
+                      </Button>
+                    )}
                   </div>
                 </div>
               )}
               {/* Google Drive Recordings */}
               <div className="space-y-4 mt-8">
                 <h3 className="text-lg font-semibold text-foreground">
-                  Previously Saved Recordings
+                  Record Your Audio
                 </h3>
-                {loadingDriveFiles ? (
-                  <p className="text-sm text-muted-foreground">Loading...</p>
-                ) : driveFiles.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No recordings found in Drive.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {driveFiles.map((file) => (
-                      <div
-                        key={file.id}
-                        className="p-4 bg-muted/20 rounded-lg flex items-center justify-between"
-                      >
-                        <div>
-                          <div className="font-medium text-foreground">
-                            {file.name}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Created:{" "}
-                            {new Date(file.createdTime).toLocaleString()}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <a
-                            href={`https://drive.google.com/uc?export=download&id=${file.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3 py-1 text-sm border rounded hover:bg-muted"
-                          >
-                            Download
-                          </a>
-                          <a
-                            href={file.webViewLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3 py-1 text-sm border rounded hover:bg-muted"
-                          >
-                            Open
-                          </a>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                
               </div>
             </div>
           </Card>
@@ -981,24 +913,24 @@ function VoiceRecorderApp() {
             <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={saveRecording}>Save</Button>
+            <Button onClick={saveRecording}>Rename</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Footer */}
-      <footer className="py-12 px-4 border-t border-border bg-background">
+      <footer className="py-12 px-4 border-t border-border bg-background ">
         <div className="container mx-auto text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
               <Mic className="w-4 h-4 text-primary-foreground" />
             </div>
             <span className="font-semibold text-foreground">
-              VoiceCapture Pro
+              Medical Transcribe
             </span>
           </div>
           <p className="text-muted-foreground mb-4">
-            Professional voice recording made simple and accessible.
+            Professional voice recording and transcription made simple and accessible.
           </p>
           <div className="flex items-center justify-center space-x-6 text-sm text-muted-foreground">
             <a href="#" className="hover:text-foreground transition-colors">
