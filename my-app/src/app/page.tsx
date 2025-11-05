@@ -427,16 +427,16 @@ function VoiceRecorderApp() {
       const data = await res.json();
 
       if (res.ok) {
-        alert(`✅ Uploaded to S3 successfully!`);
+        alert(`✅ Uploaded successfully!`);
         const uploadedKey = `medical/${fileKey.replace(/\.webm$/, ".json")}`; 
         setShowTranscriptButton(true);
         setUploadedFileKey(uploadedKey); 
       } else {
-        alert(`❌ S3 upload failed: ${data.error || "Unknown error"}`);
+        alert(`❌  Upload failed: ${data.error || "Unknown error"}`);
       }
     } catch (err) {
-      console.error("S3 upload error:", err);
-      alert("❌ Upload to S3 failed due to network/server error.");
+      console.error(" upload error:", err);
+      alert("❌ Upload failed due to network/server error.");
     }
   };
 
