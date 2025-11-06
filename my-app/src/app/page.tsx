@@ -556,10 +556,17 @@ function VoiceRecorderApp() {
               <Mic className="w-5 h-5 text-primary-foreground" />
             </div>
             <h1 className="text-xl font-bold text-foreground">
-              VoiceCapture Pro
+              MedTalkScribe
             </h1>
           </div>
           <div className="flex items-center space-x-4">
+            <div className="flex-shrink-0 mt-0 md:mt-0 mr-15">
+            <img
+              src={'/desun logo.png'}
+              alt="Powered by"
+              className="h-15 w-auto md:h-15 object-contain "
+            />
+          </div>
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
               <User className="w-4 h-4" />
               <span>{user?.name || user?.email}</span>
@@ -920,28 +927,48 @@ function VoiceRecorderApp() {
 
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-border bg-background ">
-        <div className="container mx-auto text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
-              <Mic className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-foreground">
-              Medical Transcribe
-            </span>
+        <div className="container mx-auto flex flex-col items-center gap-6 md:flex-row md:items-center md:justify-between">
+
+          {/* Left image */}
+          <div className="flex-shrink-0 mt-0 md:mt-0">
+            <img
+              src={'/advanced%20Partner%20logo.png'}
+              alt="Advanced Partner"
+              className="h-40 w-auto md:h-40 object-contain"
+            />
           </div>
-          <p className="text-muted-foreground mb-4">
-            Professional voice recording and transcription made simple and accessible.
-          </p>
-          <div className="flex items-center justify-center space-x-6 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#" className="hover:text-foreground transition-colors">
-              Terms of Service
-            </a>
-            <a href="#" className="hover:text-foreground transition-colors">
-              Support
-            </a>
+
+          {/* Center content remains centered */}
+          <div className="w-full max-w-2xl text-center">
+            <div className="flex items-center justify-center space-x-2 mb-13">
+              <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
+                <Mic className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <span className="font-semibold text-foreground">MedTalkScribe</span>
+            </div>
+            <p className="text-muted-foreground mb-13 text-pretty">
+              Professional voice recording and transcription made simple and accessible.
+            </p>
+            <div className="flex items-center justify-center space-x-24 text-sm text-muted-foreground ">
+              <a href="#" className="hover:text-foreground transition-colors">
+                Privacy Policy
+              </a>
+              <a href="#" className="hover:text-foreground transition-colors">
+                Terms of Service
+              </a>
+              <a href="#" className="hover:text-foreground transition-colors">
+                Support
+              </a>
+            </div>
+          </div>
+
+          {/* Right image */}
+          <div className="flex-shrink-0 mt-0 md:mt-0">
+            <img
+              src={'/powered%20by.png'}
+              alt="Powered by"
+              className="h-65 w-auto md:h-65 object-contain"
+            />
           </div>
         </div>
       </footer>
