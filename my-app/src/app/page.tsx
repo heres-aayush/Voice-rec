@@ -130,10 +130,10 @@ function VoiceRecorderApp() {
   }, []);
 
   const startRecording = async () => {
-    // if (!isAuthenticated) {
-    //   alert("Please sign in to start recording");
-    //   return;
-    // }
+    if (!isAuthenticated) {
+      alert("Please sign in to start recording");
+      return;
+    }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -346,60 +346,60 @@ function VoiceRecorderApp() {
       .padStart(2, "0")}`;
   };
 
-  // const handleUploadToDrive = async (recording?: any) => {
-  //   const blob = recording ? recording.blob : audioBlob;
-  //   const nameInput = recording ? recording.name : fileName.trim();
+  const handleUploadToDrive = async (recording?: any) => {
+    const blob = recording ? recording.blob : audioBlob;
+    const nameInput = recording ? recording.name : fileName.trim();
 
-  //   if (!blob) {
-  //     alert("❌ No recording to upload.");
-  //     return;
-  //   }
+    if (!blob) {
+      alert("❌ No recording to upload.");
+      return;
+    }
 
-  //   try {
-  //     const token = sessionStorage.getItem("google_access_token");
-  //     if (!token) {
-  //       alert("❌ Please sign in with Google first.");
-  //       return;
-  //     }
+    try {
+      const token = sessionStorage.getItem("google_access_token");
+      if (!token) {
+        alert("❌ Please sign in with Google first.");
+        return;
+      }
 
-  //     // Generate final filename
-  //     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  //     const safeName = nameInput
-  //       ? `${nameInput}-${timestamp}.webm`
-  //       : `recording-${timestamp}.webm`;
+      // Generate final filename
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const safeName = nameInput
+        ? `${nameInput}-${timestamp}.webm`
+        : `recording-${timestamp}.webm`;
 
-  //     const formData = new FormData();
-  //     formData.append("file", blob, safeName);
-  //     formData.append("token", token);
+      const formData = new FormData();
+      formData.append("file", blob, safeName);
+      formData.append("token", token);
 
-  //     const res = await fetch("/api/upload", {
-  //       method: "POST",
-  //       body: formData,
-  //     });
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-  //     const result = await res.json();
+      const result = await res.json();
 
-  //     if (res.ok) {
-  //       alert(`✅ Uploaded successfully!`);
+      if (res.ok) {
+        alert(`✅ Uploaded successfully!`);
 
 
-  //       if (recording) {
-  //         setTempRecordings((prev) =>
-  //           prev.map((rec) =>
-  //             rec.id === recording.id
-  //               ? { ...rec, name: safeName, fileId: result.file.id }
-  //               : rec
-  //           )
-  //         );
-  //       }
-  //     } else {
-  //       alert(`❌ Upload failed: ${result.error || "Unknown error"}`);
-  //     }
-  //   } catch (err) {
-  //     console.error("Upload error:", err);
-  //     alert("❌ Upload failed due to network/server error.");
-  //   }
-  // };
+        if (recording) {
+          setTempRecordings((prev) =>
+            prev.map((rec) =>
+              rec.id === recording.id
+                ? { ...rec, name: safeName, fileId: result.file.id }
+                : rec
+            )
+          );
+        }
+      } else {
+        alert(`❌ Upload failed: ${result.error || "Unknown error"}`);
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("❌ Upload failed due to network/server error.");
+    }
+  };
 
   const handleUploadToS3 = async (recording?: any) => {
     const blob = recording ? recording.blob : audioBlob;
