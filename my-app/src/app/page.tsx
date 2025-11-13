@@ -464,36 +464,36 @@ function VoiceRecorderApp() {
 
     setTempRecordings((prev) => prev.filter((rec) => rec.id !== id));
 
-    // try {
-    //   const token = sessionStorage.getItem("google_access_token");
-    //   if (!token) {
-    //     alert("❌ Please sign in with Google first.");
-    //     return;
-    //   }
+    try {
+      const token = sessionStorage.getItem("google_access_token");
+      if (!token) {
+        alert("❌ Please sign in with Google first.");
+        return;
+      }
 
-    //   if (!recording.fileId) {
-    //     alert("❌ This recording does not have a Google Drive ID yet.");
-    //     return;
-    //   }
+      if (!recording.fileId) {
+        alert("❌ This recording does not have a Google Drive ID yet.");
+        return;
+      }
 
-    //   const res = await fetch("/api/delete", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({ token, fileId: recording.fileId }),
-    //   });
+      const res = await fetch("/api/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, fileId: recording.fileId }),
+      });
 
-    //   const result = await res.json();
-    //   if (!res.ok) {
-    //     alert(
-    //       `❌ Could not delete on Drive: ${result.error || "Unknown error"}`
-    //     );
-    //   } else {
-    //     alert(`✅ Deleted on Drive (file ID: ${result.deletedFileId})`);
-    //   }
-    // } catch (err) {
-    //   console.error("Delete error:", err);
-    //   alert("❌ Delete failed due to network/server error.");
-    // }
+      const result = await res.json();
+      if (!res.ok) {
+        alert(
+          `❌ Could not delete on Drive: ${result.error || "Unknown error"}`
+        );
+      } else {
+        alert(`✅ Deleted on Drive (file ID: ${result.deletedFileId})`);
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("❌ Delete failed due to network/server error.");
+    }
   };
 
   if (!isAuthenticated) {
